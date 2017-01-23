@@ -18,6 +18,8 @@ class DataType(object):
                     self.data[embed.endpoint] = (embed(embed_data) for embed_data in self.data[embed.endpoint]["data"])
 
     def __getattr__(self, attr):
+        if not hasattr(self, "data"):
+            raise AttributeError
         if attr in self.data:
             if attr in self._api._datatypes:
                 cls = self._api._datatypes[attr]
@@ -36,7 +38,7 @@ class DataType(object):
         elif "id" in self.data:
             repr_str = """<{clsname} "{id}">"""
         else:
-            repr_str = """<{clsname}>"""
+            return """<{clsname}>""".format(clsname=self.__class__.__name__)
         return repr_str.format(clsname=self.__class__.__name__, **self.data)
 
     @property
@@ -51,7 +53,7 @@ class Category(DataType):
         name = "variables"
         if name in self._retrieved:
             return self.data[name]
-        data = [Variable(self._api, data=self._api.get("{}/{}/{}".format(self.endpoint, self.id, name)))]
+        data = [Variable(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
         self._retrieved += name
         return data
@@ -61,7 +63,7 @@ class Category(DataType):
         name = "records"
         if name in self._retrieved and name in self.data:
             return self.data[name]
-        data = [Leaderboard(self._api, data=self._api.get("{}/{}/{}".format(self.endpoint, self.id, name)))]
+        data = [Leaderboard(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
         self._retrieved += name
         return data
@@ -84,7 +86,7 @@ class Game(DataType):
         name = "categories"
         if name in self._retrieved:
             return self.data[name]
-        data = [Category(self._api, data=self._api.get("{}/{}/{}".format(self.endpoint, self.id, name)))]
+        data = [Category(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
         self._retrieved += name
         return data
@@ -94,7 +96,7 @@ class Game(DataType):
         name = "levels"
         if name in self._retrieved:
             return self.data[name]
-        data = [Level(self._api, data=self._api.get("{}/{}/{}".format(self.endpoint, self.id, name)))]
+        data = [Level(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
         self._retrieved += name
         return data
@@ -104,17 +106,17 @@ class Game(DataType):
         name = "variables"
         if name in self._retrieved:
             return self.data[name]
-        data = [Variable(self._api, data=self._api.get("{}/{}/{}".format(self.endpoint, self.id, name)))]
+        data = [Variable(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
         self._retrieved += name
         return data
 
     @property
     def derived_games(self):
-        name = "derived-games"
+        name = "derived_games"
         if name in self._retrieved:
             return self.data[name]
-        data = [Game(self._api, data=self._api.get("{}/{}/{}".format(self.endpoint, self.id, name)))]
+        data = [Game(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, "derived-games"))]
         self.data[name] = data
         self._retrieved += name
         return data
