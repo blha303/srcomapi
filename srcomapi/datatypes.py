@@ -1,23 +1,26 @@
 from .exceptions import APINotProvidedException
 
 class DataType(object):
-    def __init__(self, srcom=None, data=None, id=None, **kwargs):
+    @property
+    def embeds(self):
+        return []
+
+    def __init__(self, srcom=None, data=None, id=None):
         self._api = srcom
         if not self._api:
             raise APINotProvidedException("A SpeedrunCom instance was not passed to the DataType")
         if id and not data:
-            self.data = self._api.get("{}/{}".format(endpoint, id), **kwargs)
+            self.data = self._api.get("{}/{}".format(self.endpoint, id), params={"embed": ",".join([a.endpoint for a in self.embeds]) if self.embeds else None})
         elif data:
             self.data = data
-        if self.data and getattr(self, "embeds", None):
+        else:
+            return
+        for k,v in self.data.items():
+            setattr(self, k, v)
+        if self.data:
             for embed in self.embeds:
                 if embed.endpoint in self.data and "data" in self.data[embed.endpoint]:
                     self.data[embed.endpoint] = (embed(embed_data) for embed_data in self.data[embed.endpoint]["data"])
-
-    def __getattr__(self, attr):
-        if attr not in self.data:
-            return super(DataType, self).__getattr__(self, attr)
-        return self.data[attr]
 
     def __repr__(self):
         if "name" in self.data:
