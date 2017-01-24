@@ -82,6 +82,10 @@ class Game(DataType):
     endpoint = "games"
 
     @property
+    def name(self):
+        return self.data["names"]["international"]
+
+    @property
     def categories(self):
         name = "categories"
         if name in self._retrieved:

@@ -11,6 +11,7 @@ from .exceptions import APIRequestException, APINotProvidedException
 with open(dirname(srcomapi.__file__) + "/.version") as f:
     __version__ = f.read().strip()
 API_URL = "https://www.speedrun.com/api/v1/"
+DEBUG = environ.get("DEBUG", None)
 
 class SpeedrunCom(object):
     def __init__(self, api_key=None, user_agent="blha303:srcomapi/"+__version__):
@@ -23,7 +24,7 @@ class SpeedrunCom(object):
         if self.api_key:
             headers["X-API-Key"] = self.api_key
         kwargs.update({"headers": headers})
-        print(API_URL + endpoint)
+        if DEBUG: print(API_URL + endpoint)
         response = requests.get(API_URL + endpoint, **kwargs)
         if response.status_code == 404:
             raise APIRequestException("{} {}".format(response.status_code, responses[response.status_code]), response)
