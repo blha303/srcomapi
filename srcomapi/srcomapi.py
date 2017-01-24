@@ -30,11 +30,13 @@ class SpeedrunCom(object):
             raise APIRequestException("{} {}".format(response.status_code, responses[response.status_code]), response)
         return response.json()["data"]
 
-    def get_game(self, id=None, **kwargs):
-        """Returns a generator that yields srcomapi.Game objects containing the response data"""
-        response = self.get("games" + ("/{}".format(id) if id else ""), **kwargs)
-        if type(response) is list:
-            for game_data in response:
-                yield datatypes.Game(self, data=game_data)
-        elif type(response) is dict:
-            yield datatypes.Game(self, data=response)
+    def get_game(self, id, **kwargs):
+        """Returns a srcomapi.datatypes.Game object"""
+        response = self.get("games/{}".format(id), **kwargs)
+        return datatypes.Game(self, data=response)
+
+    def get_games(self, **kwargs):
+        """Returns a generator that yields srcomapi.datatypes.Game objects"""
+        response = self.get("games", **kwargs)
+        for game_data in response:
+            yield datatypes.Game(self, data=game_data)
