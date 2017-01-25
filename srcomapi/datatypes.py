@@ -1,7 +1,9 @@
 from .exceptions import APINotProvidedException
 
 class DataType(object):
-    def __init__(self, srcom=None, data=None, id=None):
+    def __init__(self, srcom=None, data=None, id=None, position=None):
+        if self.__class__.__name__ == "Moderator":
+            self.position = position
         self._retrieved = []
         self._api = srcom
         if not self._api:
@@ -10,12 +12,16 @@ class DataType(object):
             self.data = self._api.get("{}/{}".format(self.endpoint, id))
         elif data:
             self.data = data
-        else:
-            return
         if self.data:
             for embed in self.embeds:
-                if embed.endpoint in self.data and "data" in self.data[embed.endpoint]:
-                    self.data[embed.endpoint] = (embed(embed_data) for embed_data in self.data[embed.endpoint]["data"])
+                if hasattr(embed, "_embed_name"):
+                    endpoint = embed._embed_name
+                elif hasattr(embed, "endpoint"):
+                    endpoint = embed.endpoint
+                else:
+                    continue
+                if endpoint in self.data and "data" in self.data[endpoint]:
+                    self.data[endpoint] = (embed(embed_data) for embed_data in self.data[endpoint]["data"])
 
     def __getattr__(self, attr):
         if self._api.debug: print("entered __getattr__")
@@ -26,10 +32,10 @@ class DataType(object):
             if attr in self._api._datatypes:
                 cls = self._api._datatypes[attr]
                 if type(self.data[attr]) is list and len(self.data[attr]) > 0 and len(self.data[attr][0]) == 8:
-                    self.data[attr] = [cls(self._api, data=self._api.get("{}/{}".format(attr,id))) for id in self.data[attr]]
+                    self.data[attr] = [cls(self._api, id=id) for id in self.data[attr]]
                     self._retrieved.append(attr)
                 elif type(self.data[attr]) is str and len(self.data[attr]) == 8:
-                    self.data[attr] = cls(self._api, data=self._api.get("{}/{}".format(attr,self.data[attr])))
+                    self.data[attr] = cls(self._api, id=self.data[attr])
                     self._retrieved.append(attr)
             return self.data[attr]
         raise AttributeError("{} is not in {}".format(attr, self.data))
@@ -42,6 +48,10 @@ class DataType(object):
         else:
             return """<{clsname}>""".format(clsname=self.__class__.__name__)
         return repr_str.format(clsname=self.__class__.__name__, **self.data)
+
+    def __dir__(self):
+        import inspect
+        return [i[0] for i in inspect.getmembers(self.__class__)] + (list(self.data.keys()) if self.data else []) + list(self.__dict__.keys())
 
     @property
     def embeds(self):
@@ -103,6 +113,16 @@ class Game(DataType):
         if name in self._retrieved:
             return self.data[name]
         data = [Level(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
+        self.data[name] = data
+        self._retrieved.append(name)
+        return data
+
+    @property
+    def moderators(self):
+        name = "moderators"
+        if name in self._retrieved:
+            return self.data[name]
+        data = [Moderator(self._api, id=id, position=position) for id,position in self.data[name].items()]
         self.data[name] = data
         self._retrieved.append(name)
         return data
@@ -184,10 +204,16 @@ class Platform(DataType):
     endpoint = "platforms"
 
 class Player(DataType):
-    pass
+    endpoint = "users"
 
 class Guest(Player):
     endpoint = "guests"
+
+class User(Player):
+    pass
+
+class Moderator(User):
+    _embed_name = "moderators"
 
 class Profile(DataType):
     endpoint = "profile"
@@ -209,7 +235,7 @@ class Run(DataType):
         for player in self.data["players"]:
             if player["rel"] == "user":
                 p.append(User(self._api, data=player))
-            if player["rel"] == "guest":
+            elif player["rel"] == "guest":
                 p.append(Guest(self._api, data=player))
             else:
                 p.append(Player(self._api, data=player))
@@ -226,12 +252,6 @@ class Series(DataType):
     @property
     def embeds(self):
         return [Moderator]
-
-class User(Player):
-    endpoint = "users"
-
-class Moderator(User):
-    pass
 
 class Variable(DataType):
     endpoint = "variables"
