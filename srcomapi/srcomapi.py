@@ -24,6 +24,7 @@ class SpeedrunCom(object):
         self.api_key = api_key
         self.user_agent = user_agent
         self.mock = mock
+        self.debug = DEBUG
 
     def get(self, endpoint, **kwargs):
         headers = {"User-Agent": self.user_agent}

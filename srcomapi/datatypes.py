@@ -18,17 +18,19 @@ class DataType(object):
                     self.data[embed.endpoint] = (embed(embed_data) for embed_data in self.data[embed.endpoint]["data"])
 
     def __getattr__(self, attr):
+        if self._api.debug: print("entered __getattr__")
         if not hasattr(self, "data"):
-            raise AttributeError
+            raise AttributeError("No data in datatype")
+        if self._api.debug: print("__getattr__: " + attr)
         if attr in self.data:
             if attr in self._api._datatypes:
                 cls = self._api._datatypes[attr]
                 if type(self.data[attr]) is list and len(self.data[attr]) > 0 and len(self.data[attr][0]) == 8:
                     self.data[attr] = [cls(self._api, data=self._api.get("{}/{}".format(attr,id))) for id in self.data[attr]]
-                    self._retrieved += attr
+                    self._retrieved.append(attr)
                 elif type(self.data[attr]) is str and len(self.data[attr]) == 8:
                     self.data[attr] = cls(self._api, data=self._api.get("{}/{}".format(attr,self.data[attr])))
-                    self._retrieved += attr
+                    self._retrieved.append(attr)
             return self.data[attr]
         raise AttributeError("{} is not in {}".format(attr, self.data))
 
@@ -55,7 +57,7 @@ class Category(DataType):
             return self.data[name]
         data = [Variable(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
@@ -65,7 +67,7 @@ class Category(DataType):
             return self.data[name]
         data = [Leaderboard(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
@@ -92,7 +94,7 @@ class Game(DataType):
             return self.data[name]
         data = [Category(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
@@ -102,7 +104,7 @@ class Game(DataType):
             return self.data[name]
         data = [Level(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
@@ -112,7 +114,7 @@ class Game(DataType):
             return self.data[name]
         data = [Variable(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
@@ -122,7 +124,7 @@ class Game(DataType):
             return self.data[name]
         data = [Game(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, "derived-games"))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
@@ -132,7 +134,7 @@ class Game(DataType):
             return self.data[name]
         data = [Leaderboard(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, name))]
         self.data[name] = data
-        self._retrieved += name
+        self._retrieved.append(name)
         return data
 
     @property
