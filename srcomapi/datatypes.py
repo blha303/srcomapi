@@ -24,7 +24,8 @@ class DataType(object):
                     self.data[endpoint] = (embed(embed_data) for embed_data in self.data[endpoint]["data"])
 
     def __getattr__(self, attr):
-        if self._api.debug: print("entered __getattr__")
+        if "_" in attr:
+            attr = attr.replace("_", "-")
         if not hasattr(self, "data"):
             raise AttributeError("No data in datatype")
         if self._api.debug: print("__getattr__: " + attr)
@@ -51,7 +52,8 @@ class DataType(object):
 
     def __dir__(self):
         import inspect
-        return [i[0] for i in inspect.getmembers(self.__class__)] + (list(self.data.keys()) if self.data else []) + list(self.__dict__.keys())
+        out = [i[0] for i in inspect.getmembers(self.__class__)] + (list(self.data.keys()) if self.data else []) + list(self.__dict__.keys())
+        return [a.replace("-", "_") for a in out]
 
     @property
     def embeds(self):
@@ -139,7 +141,7 @@ class Game(DataType):
 
     @property
     def derived_games(self):
-        name = "derived_games"
+        name = "derived-games"
         if name in self._retrieved:
             return self.data[name]
         data = [Game(self._api, data=d) for d in self._api.get("{}/{}/{}".format(self.endpoint, self.id, "derived-games"))]
