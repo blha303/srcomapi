@@ -7,6 +7,7 @@ setup(
     name='srcomapi',
     version=version,
     packages=['srcomapi'],
+    package_data={'': ['.version']},
     include_package_data=True,
     install_requires=[
         'requests'
