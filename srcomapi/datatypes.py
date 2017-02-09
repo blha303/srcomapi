@@ -230,18 +230,20 @@ class Run(DataType):
     endpoint = "runs"
 
     @property
-    def players():
+    def players(self):
         if "players" in self._retrieved:
             return self.data["players"]
         p = []
         for player in self.data["players"]:
             if player["rel"] == "user":
-                p.append(User(self._api, data=player))
+                p.append(User(self._api, id=player['id']))
             elif player["rel"] == "guest":
-                p.append(Guest(self._api, data=player))
+                p.append(Guest(self._api, id=player['name']))
             else:
-                p.append(Player(self._api, data=player))
+                #should never be reached
+                p.append(Player(self._api, id=player['id']))
         self.data["players"] = p
+        self._retrieved.append('players')
         return p
 
     @property
