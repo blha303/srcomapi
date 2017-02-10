@@ -181,6 +181,16 @@ class Leaderboard(DataType):
     def embeds(self):
         return [Game, Category, Level, Player, Region, Platform, Variable]
 
+    @property
+    def runs(self):
+        name='runs'
+        if name in self._retrieved:
+            return self.data[name]
+        for run in self.data[name]:
+            run['run']=Run(self._api,data=run['run'])
+        self._retrieved.append(name)
+        return self.data[name]
+
     def __repr__(self):
         if "data" in self.data["game"]:
             game = self.data["game"]["data"]["names"]["international"]
