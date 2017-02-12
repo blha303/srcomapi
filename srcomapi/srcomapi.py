@@ -63,3 +63,9 @@ class SpeedrunCom(object):
         response = self.get("games", **kwargs)
         for game_data in response:
             yield datatypes.Game(self, data=game_data)
+
+    def search(self, datatype, params):
+        """Returns a generator that uses the given datatype and search params to get results"""
+        response = self.get(datatype.endpoint, params=params)
+        for data in response:
+            yield datatype(self, data=data)
