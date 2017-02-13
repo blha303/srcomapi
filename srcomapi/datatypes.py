@@ -48,7 +48,7 @@ class DataType(object):
                     self.data[attr] = cls(self._api, id=self.data[attr])
                     self._retrieved.append(attr)
             return self.data[attr]
-        raise AttributeError("{} is not in {}".format(attr, self.data))
+        raise AttributeError("{} is not in {}".format(attr, dir(self)))
 
     def __repr__(self):
         if hasattr(self, "name"):
@@ -225,6 +225,11 @@ class Guest(Player):
     endpoint = "guests"
 
 class User(Player):
+
+    @property
+    def name(self):
+        """Convenience property"""
+        return self.data["names"]["international"]
 
     @property
     def personal_bests(self):
