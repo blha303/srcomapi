@@ -3,11 +3,12 @@ from .exceptions import APINotProvidedException
 _cache = {}
 
 class DataType(object):
-    def __init__(self, srcom=None, data=None, id=None, position=None):
+    def __init__(self, srcom=None, data=None, id=None, position=None, _repr=False):
         global _cache
         if self.__class__.__name__ == "Moderator":
             self.position = position
         self._retrieved = []
+        self._repr = _repr
         self._api = srcom
         if not self._api:
             raise APINotProvidedException("A SpeedrunCom instance was not passed to the DataType")
@@ -50,13 +51,15 @@ class DataType(object):
         raise AttributeError("{} is not in {}".format(attr, self.data))
 
     def __repr__(self):
-        if "name" in self.data:
-            repr_str = """<{clsname} "{name}">"""
+        if hasattr(self, "name"):
+            repr_str = '''"{}"'''.format(self.name)
         elif "id" in self.data:
-            repr_str = """<{clsname} {id}>"""
+            repr_str = self.data["id"]
         else:
-            return """<{clsname}>""".format(clsname=self.__class__.__name__)
-        return repr_str.format(clsname=self.__class__.__name__, **self.data)
+            return """<{}>""".format(self.__class__.__name__)
+        if self._repr:
+            return repr_str
+        return "<{} {}>".format(self.__class__.__name__, repr_str)
 
     def __dir__(self):
         import inspect
@@ -105,6 +108,7 @@ class Game(DataType):
 
     @property
     def name(self):
+        """Convenience property"""
         return self.data["names"]["international"]
 
     @property
@@ -171,11 +175,6 @@ class Game(DataType):
     def embeds(self):
         return [Level, Category, Moderator, GameType, Platform, Region, Genre, Engine, Developer, Publisher, Variable]
 
-    def __repr__(self):
-        if "names" in self.data and "international" in self.data["names"]:
-            return "<Game \"{names[international]}\">".format(**self.data)
-        return "<Game {}>".format(self.id)
-
 class GameType(DataType):
     endpoint = "gametypes"
 
@@ -200,15 +199,11 @@ class Leaderboard(DataType):
         return self.data[name]
 
     def __repr__(self):
-        if "data" in self.data["game"]:
-            game = self.data["game"]["data"]["names"]["international"]
-        else:
-            game = self.data["game"]
-        if "data" in self.data["category"]:
-            category = self.data["category"]["data"]["name"]
-        else:
-            category = self.data["category"]
-        return """<Leaderboard {}/{}>""".format(game, category)
+        if not isinstance(self.data["game"], Game):
+            self.data["game"] = Game(self._api, id=self.data["game"], _repr=True)
+        if not isinstance(self.data["category"], Category):
+            self.data["category"] = Category(self._api, id=self.data["category"], _repr=True)
+        return """<Leaderboard {game}/{category}>""".format(**self.data)
 
 class Level(DataType):
     endpoint = "levels"
@@ -269,8 +264,10 @@ class Run(DataType):
         return [Game, Category, Level, Player, Region, Platform]
 
     def __repr__(self):
-        self.data["game"] = Game(self._api, id=self.data["game"])
-        self.data["category"] = Category(self._api, id=self.data["category"])
+        if not isinstance(self.data["game"], Game):
+            self.data["game"] = Game(self._api, id=self.data["game"], _repr=True)
+        if not isinstance(self.data["category"], Category):
+            self.data["category"] = Category(self._api, id=self.data["category"], _repr=True)
         return "<Run {game}/{category}/{id} {times[primary_t]}>".format(**self.data)
 
 class Series(DataType):

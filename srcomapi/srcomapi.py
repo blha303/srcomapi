@@ -45,11 +45,11 @@ class SpeedrunCom(object):
                         f.write(json.dumps(response.json()).encode("utf-8"))
                     data = response.json()["data"]
                 else:
-                    raise APIRequestException("{} {}".format(response.status_code, responses[response.status_code]), response)
+                    raise APIRequestException((response.status_code, responses[response.status_code], uri[len(API_URL):]), response)
         else:
             response = requests.get(uri, **kwargs)
             if response.status_code == 404:
-                raise APIRequestException("{} {}".format(response.status_code, responses[response.status_code]), response)
+                raise APIRequestException((response.status_code, responses[response.status_code], uri[len(API_URL):]), response)
             data = response.json()["data"]
         return data
 
