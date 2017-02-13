@@ -54,14 +54,12 @@ class SpeedrunCom(object):
         return data
 
     def get_game(self, id, **kwargs):
-        """Returns a srcomapi.datatypes.Game object"""
-        response = self.get("games/{}".format(id), **kwargs)
-        return datatypes.Game(self, data=response)
+        """ Legacy function, will be removed in next major version"""
+        return next(search(self, datatypes.Game, {"id": id}))
 
     def get_games(self, **kwargs):
-        """Returns a generator that yields srcomapi.datatypes.Game objects"""
-        response = self.get("games", **kwargs)
-        return [datatypes.Game(self, data=game_data) for game_data in response]
+        """ Legacy function, will be removed in next major version"""
+        return search(self, datatypes.Game, **kwargs)
 
     def search(self, datatype, params):
         """Returns a generator that uses the given datatype and search params to get results"""
