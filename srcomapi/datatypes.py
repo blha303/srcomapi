@@ -225,7 +225,17 @@ class Guest(Player):
     endpoint = "guests"
 
 class User(Player):
-    pass
+
+    @property
+    def personal_bests(self):
+        name='personal-bests'
+        if name in self._retrieved:
+            return self.data[name]
+        self.data[name]=self._api.get('users/{}/personal-bests'.format(self.id))
+        for run in self.data[name]:
+            run['run']=Run(self._api,data=run['run'])
+        self._retrieved.append(name)
+        return self.data[name]
 
 class Moderator(User):
     _embed_name = "moderators"
