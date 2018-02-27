@@ -1,7 +1,9 @@
 srcomapi (SpeedrunComAPI) ![travis-ci](https://travis-ci.org/blha303/srcomapi.svg?branch=master)
 =========================
 
-A Python implementation of the speedrun.com REST API.
+A Python 3 implementation of the speedrun.com REST API. `pip3 install srcomapi`
+
+Does not support Python 2. Sorry.
 
 Usage
 =====
