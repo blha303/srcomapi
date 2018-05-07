@@ -12,7 +12,9 @@ class DataType(object):
         self._api = srcom
         if not self._api:
             raise APINotProvidedException("A SpeedrunCom instance was not passed to the DataType")
-        if _cache.get(self.__class__.__name__, {}).get(id, None):
+        if type(id) is dict:
+            self.data = id
+        elif _cache.get(self.__class__.__name__, {}).get(id, None):
             self.data = _cache[self.__class__.__name__][id]
         elif id and not data:
             self.data = self._api.get("{}/{}".format(self.endpoint, id))
