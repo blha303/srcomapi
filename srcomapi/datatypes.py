@@ -39,7 +39,7 @@ class DataType(object):
             attr = attr.replace("_", "-")
         if not hasattr(self, "data"):
             raise AttributeError("No data in datatype")
-        if self._api.debug: print("__getattr__: " + attr)
+        if self._api.debug >= 2: print("__getattr__: " + attr)
         if attr in self.data:
             if attr in self._api._datatypes:
                 cls = self._api._datatypes[attr]
