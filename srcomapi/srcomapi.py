@@ -15,7 +15,6 @@ import gzip
 with open(dirname(srcomapi.__file__) + "/.version") as f:
     __version__ = f.read().strip()
 API_URL = "https://www.speedrun.com/api/v1/"
-DEBUG = environ.get("DEBUG", None)
 TEST_DATA = dirname(srcomapi.__file__) + "/test_data/"
 
 class SpeedrunCom(object):
@@ -24,7 +23,7 @@ class SpeedrunCom(object):
         self.api_key = api_key
         self.user_agent = user_agent
         self.mock = mock
-        self.debug = DEBUG
+        self.debug = 0
 
     def get(self, endpoint, **kwargs):
         headers = {"User-Agent": self.user_agent}
@@ -32,7 +31,7 @@ class SpeedrunCom(object):
             headers["X-API-Key"] = self.api_key
         kwargs.update({"headers": headers})
         uri = API_URL + endpoint
-        if DEBUG: print(uri)
+        if self.debug >= 1: print(uri)
         if self.mock:
             mock_endpoint = ".".join(endpoint.split("/")[0::2])
             try:
