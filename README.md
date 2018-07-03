@@ -12,8 +12,8 @@ Start
 -----
 
 ```python
->>> import srcomapi
->>> api = srcomapi.SpeedrunCom()
+>>> import srcomapi, srcomapi.datatypes as dt
+>>> api = srcomapi.SpeedrunCom(); api.debug = 1
 ```
 
 Searching for a game
@@ -39,4 +39,19 @@ Getting the current world record for a game category
 >>> _[0]["run"].times
 {'primary_t': 4498, ...}
 # primary_t is the time in seconds
+```
+
+Getting a dict containing all runs from a game
+----------------------------------------------
+
+```python
+sms_runs = {}
+for category in game.categories:
+  if not category.name in sms_runs:
+    sms_runs[category.name] = {}
+  if category.type == 'per-level':
+    for level in game.levels:
+      sms_runs[category.name][level.name] = dt.Leaderboard(api, data=api.get("leaderboards/{}/level/{}/{}?embed=variables".format(game.id, level.id, category.id)))
+  else:
+    sms_runs[category.name] = dt.Leaderboard(api, data=api.get("leaderboards/{}/category/{}?embed=variables".format(game.id, category.id)))
 ```
