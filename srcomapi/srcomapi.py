@@ -59,6 +59,9 @@ class SpeedrunCom(object):
         """ Legacy function, will be removed in next major version"""
         return self.search(datatypes.Game, **kwargs)
 
+    def get_user(self, id, **kwargs):
+        return datatypes.User(self, data=self.get("users/" + id))
+
     def search(self, datatype, params):
         """Returns a generator that uses the given datatype and search params to get results"""
         response = self.get(datatype.endpoint, params=params)
