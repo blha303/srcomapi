@@ -41,8 +41,25 @@ class SpeedrunCom(object):
                 response = requests.get(uri, **kwargs)
                 if response.status_code != 404:
                     with gzip.open(TEST_DATA + mock_endpoint + ".json.gz", "wb") as f:
-                        f.write(json.dumps(response.json()).encode("utf-8"))
-                    data = response.json()["data"]
+                        """SRC allows to 200 entries max per request 
+                        so we're making requests until we get all entries
+                        https://github.com/speedruncomorg/api/blob/master/version1/pagination.md
+                        """
+                        json_to_write = response.json()
+                        data = response.json()["data"]
+                        try:
+                            response_size = response.json()['pagination']['size']
+                            response_max_size = response.json()['pagination']['max']
+                            while response_size == response_max_size: #if request size is the maximum allowed we haven't reached the end of entries
+                                uri = response.json()['pagination']['links'][0]["uri"] #SRC gives us the link to use for next request
+                                response = requests.get(uri)
+                                response_size = response.json()['pagination']['size']
+                                response_max_size = response.json()['pagination']['max']
+                                data.extend(response.json()["data"])
+                        except KeyError:
+                            pass
+                        json_to_write['data'] = data
+                        f.write(json.dumps(json_to_write).encode("utf-8"))
                 else:
                     raise APIRequestException((response.status_code, responses[response.status_code], uri[len(API_URL):]), response)
         else:
@@ -50,6 +67,17 @@ class SpeedrunCom(object):
             if response.status_code == 404:
                 raise APIRequestException((response.status_code, responses[response.status_code], uri[len(API_URL):]), response)
             data = response.json()["data"]
+            try:
+                response_size = response.json()['pagination']['size']
+                response_max_size = response.json()['pagination']['max']
+                while response_size == response_max_size: 
+                    uri = response.json()['pagination']['links'][0]["uri"] 
+                    response = requests.get(uri)
+                    response_size = response.json()['pagination']['size']
+                    response_max_size = response.json()['pagination']['max']
+                    data.extend(response.json()["data"])
+            except KeyError:
+                pass
         return data
 
     def get_game(self, id, **kwargs):
