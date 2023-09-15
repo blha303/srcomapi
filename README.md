@@ -1,3 +1,5 @@
+**Inactive. Check [the network graph](https://github.com/blha303/srcomapi/network) to see if there are any active forks. Thanks for using srcomapi.**
+
 srcomapi (SpeedrunComAPI) ![travis-ci](https://travis-ci.org/blha303/srcomapi.svg?branch=master)
 =========================
 
